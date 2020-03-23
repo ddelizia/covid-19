@@ -28,14 +28,42 @@ def comparator_selector():
         multi=True,
     )
 
+def box(color, text, value):
+    return html.Div(className=f'column is-3', children=[
+            html.Div(className=f'notification {color}', children=[
+                html.H1(className='title',  children=text),
+                html.P(className='subtitle', children=value)
+            ])
+        ])
+
+def info_box():
+    df = data_ccaa('Total')
+
+    all = df["all"][-1]
+    remaining = df["remaining"][-1]
+    deaths = df["deaths"][-1]
+    uci = df["uci"][-1]
+    recovered = df["recovered"][-1]
+
+    return html.Div(className='columns', children=[
+        box('is-info', 'All cases', all),
+        box('is-warning', 'ICU', uci),
+        box('is-success', 'Recovered', recovered),
+        box('is-danger', 'Deaths', deaths),
+
+    ])
+
+
+
 
 app.layout = html.Div(className='container', children=[
 
     html.H1(className='title', children='Covid-19 Spain Dashboard'),
 
     html.P(className='subtitle', children='''
-        Data exploration for Spain Cases evolution. Data available provided by: https://github.com/datadista/datasets/tree/master/COVID%2019
+        Data exploration for Spain Cases evolution. Data from: https://github.com/datadista/datasets/tree/master/COVID%2019
     '''),
+    info_box(),
     dcc.Tabs([
         dcc.Tab(label='Explore data', children=[
             selector(),
@@ -58,7 +86,13 @@ def table(ca):
     df = data_ccaa(ca)
     return dash_table.DataTable(
         id='table-data',
-        columns=[{"name": i, "id": i} for i in df.columns],
+        columns=[
+            {"name": 'All cases', "id": 'all'},
+            {"name": 'Active cases', "id": 'remaining'},
+            {"name": 'Recovered', "id": 'recovered'},
+            {"name": 'Cases in ICU', "id": 'uci'},
+            {"name": 'Deaths', "id": 'deaths'},
+        ],
         data=df.to_dict('records'),
     )
 
