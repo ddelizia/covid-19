@@ -28,7 +28,7 @@ def comparator_selector():
         multi=True,
     )
 
-def box(color, text, value):
+def box(color, value, text):
     return html.Div(className=f'column is-3', children=[
             html.Div(className=f'notification {color}', children=[
                 html.H1(className='title',  children=text),
@@ -57,6 +57,17 @@ def info_box():
 
 
 app.layout = html.Div(className='container', children=[
+    html.Script(children='''
+(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+})(window,document,'script','dataLayer','GTM-5TZCMN3');
+    '''),
+
+    html.Noscript(children=[
+        html.Iframe(src='https://www.googletagmanager.com/ns.html?id=GTM-5TZCMN3', height="0", width="0", style="display:none;visibility:hidden")
+    ]),
 
     html.H1(className='title', children='Covid-19 Spain Dashboard'),
 
@@ -163,8 +174,8 @@ def fig_overview(ca):
     fig_resume = dcc.Graph(
         figure=dict(
             data=[
-                {'type': 'bar', 'x': df.index, 'y': df['remaining'], 'name': 'Remaining', 'marker': {'color': 'darkorange'}},
-                {'type': 'bar', 'x': df.index, 'y': df['uci'], 'name': 'Icus', 'marker': {'color': 'crimson'}},
+                {'type': 'bar', 'x': df.index, 'y': df['remaining'], 'name': 'Active cases', 'marker': {'color': 'darkorange'}},
+                {'type': 'bar', 'x': df.index, 'y': df['uci'], 'name': 'Cases in ICU', 'marker': {'color': 'crimson'}},
                 {'type': 'bar', 'x': df.index, 'y': df['recovered'], 'name': 'Recovered', 'marker': {'color': 'forestgreen'}},
                 {'type': 'bar', 'x': df.index, 'y': df['deaths'], 'name': 'Deaths', 'marker': {'color': 'black'}},
             ],
