@@ -6,7 +6,7 @@ from dash.dependencies import Output, Input
 
 from data import data_ccaa, get_ccaa, data_exp
 
-external_stylesheets = ['"https://cdn.jsdelivr.net/npm/bulma@0.8.0/css/bulma.min.css']
+external_stylesheets = ['https://cdn.jsdelivr.net/npm/bulma@0.8.0/css/bulma.min.css']
 
 app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
 
@@ -24,7 +24,7 @@ def comparator_selector():
     ccaa = get_ccaa()
     return dcc.Dropdown(
         id='comporator-selector',
-        options=[{'label': x, 'value': x}  for x in filter(lambda i: i != 'Total', ccaa)],
+        options=[{'label': x, 'value': x} for x in filter(lambda i: i != 'Total', ccaa)],
         multi=True,
     )
 
@@ -63,6 +63,11 @@ def table(ca):
     )
 
 
+def _build_figure_grid(layout_grid):
+    return [html.Div(className='columns', children=[html.Div(className=f'column is-{12/len(row)}', children=[x]) for x in row])
+            for row in layout_grid]
+
+
 @app.callback(
     Output(component_id='fig-comparator', component_property='children'),
     [Input(component_id='comporator-selector', component_property='value')]
@@ -97,11 +102,11 @@ def fig_comparator(ca):
             )
         ),
     )
-
-    return html.Div(className='columns',
-                    children=[html.Div(className='column is-half', children=[x]) for x in [
-                        all_cases, recovered, deaths
-                    ]])
+    layout_grid = [
+        [all_cases],
+        [recovered, deaths]
+    ]
+    return _build_figure_grid(layout_grid)
 
 
 @app.callback(
@@ -226,18 +231,17 @@ def fig_overview(ca):
     )
 
 
+    layout_grid = [
+        [fig_all_cases, fig_resume],
+        [fig_all_cases_delta, fig_all_cases_delta_pct],
+        [fig_icus_cases_delta, fig_icus_cases_delta_pct],
+        [fig_recovered_cases_delta, fig_recovered_cases_delta_pct],
+        [fig_deaths_cases_delta, fig_deaths_cases_delta_pct],
+        [fig_exp_growth,]
+    ]
 
-    return html.Div(className='columns',
-                    children=[html.Div(className='column is-half',
-                                       children=[x]) for x in [fig_all_cases, fig_resume,
-                                                               fig_all_cases_delta, fig_all_cases_delta_pct,
-                                                               fig_icus_cases_delta, fig_icus_cases_delta_pct,
-                                                               fig_recovered_cases_delta, fig_recovered_cases_delta_pct,
-                                                               fig_deaths_cases_delta, fig_deaths_cases_delta_pct,
-                                                               fig_exp_growth,
-                                                               ]
-                              ]
-    )
+    return _build_figure_grid(layout_grid)
+
 
 
 server = app.server
