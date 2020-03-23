@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 from expiringdict import ExpiringDict
 
 cache = ExpiringDict(max_len=100, max_age_seconds=86400/2)
@@ -35,3 +36,9 @@ def data_ccaa(ca):
         data['remaining'] = data["all"] - data["deaths"] - data["uci"] - data["recovered"]
         cache[f'data{ca}'] = data
     return cache[f'data{ca}']
+
+
+def data_exp():
+    df_cases, df_uci, df_deaths, df_recovered = all_data()
+    x = np.linspace(0, df_cases.shape[0] - 1, df_cases.shape[0])
+    return np.power(2, x), np.power(2, x/2), np.power(2, x/3), np.power(2, x/4)
