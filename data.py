@@ -1,14 +1,15 @@
 import pandas as pd
 import numpy as np
 from expiringdict import ExpiringDict
+from scipy.optimize import curve_fit
 
-cache = ExpiringDict(max_len=100, max_age_seconds=86400/2)
+cache = ExpiringDict(max_len=100, max_age_seconds=86400/24)
 
 
 def _normalize_data(dataset_url):
     df = pd.read_csv(dataset_url)
     df_ca = df.set_index('CCAA').drop(['cod_ine'], axis='columns').transpose()
-    df_ca.index = pd.to_datetime(df_ca.index, format='%d/%m/%Y')
+    df_ca.index = pd.to_datetime(df_ca.index, format='%Y/%m/%d')
     return df_ca.reindex(pd.date_range(df_ca.index[0], df_ca.index[-1]))
 
 
@@ -38,7 +39,24 @@ def data_ccaa(ca):
     return cache[f'data{ca}']
 
 
+def lin_space():
+    df_cases, df_uci, df_deaths, df_recovered = all_data()
+    x = np.linspace(0, df_cases.shape[0] - 1, df_cases.shape[0])
+    return x
+
+
 def data_exp():
     df_cases, df_uci, df_deaths, df_recovered = all_data()
     x = np.linspace(0, df_cases.shape[0] - 1, df_cases.shape[0])
     return np.power(2, x), np.power(2, x/2), np.power(2, x/3), np.power(2, x/4)
+
+
+def exponenial_func(x, a, b):
+    return a*np.exp(-b*x)
+
+
+def exp_fit(y):
+    x = lin_space()
+    popt, pcov = curve_fit(exponenial_func, x, y, p0=(1, 1e-6))
+
+    return exponenial_func(x, *popt)

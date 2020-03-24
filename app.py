@@ -4,7 +4,7 @@ import dash_html_components as html
 import dash_table
 from dash.dependencies import Output, Input
 
-from data import data_ccaa, get_ccaa, data_exp
+from data import data_ccaa, get_ccaa, data_exp, exp_fit
 
 external_stylesheets = ['https://cdn.jsdelivr.net/npm/bulma@0.8.0/css/bulma.min.css']
 
@@ -115,7 +115,7 @@ app.layout = html.Div(className='container', children=[
                 html.Strong(children='Covid-19 Spain Dashboard'),
                 ' by ',
                 html.A(href='https://github.com/ddelizia', children='Danilo Delizia'),
-                '. The source code is licensed ',
+                '. The source code is licensed under ',
                 html.A(href='http://opensource.org/licenses/mit-license.php', children='MIT'),
                 '. Data from ',
                 html.A(href='https://github.com/datadista/datasets/tree/master/COVID%2019', children='datadista/datasets'),
@@ -197,10 +197,12 @@ def fig_comparator(ca):
 )
 def fig_overview(ca):
     df = data_ccaa(ca)
+    exp1, exp2, exp3, exp4 = data_exp()
     fig_all_cases = dcc.Graph(
         figure=dict(
             data=[
                 {'x': df.index, 'y': df['all'], 'name': 'All cases'},
+                #{'x': df.index, 'y': exp_fit(df['all']), 'name': 'Exponential model'},
             ],
             layout=dict(
                 title=f"All cases [{ca}]",
@@ -301,8 +303,6 @@ def fig_overview(ca):
             layout=dict(title=f"Deaths delta % [{ca}]", )
         ),
     )
-
-    exp1, exp2, exp3, exp4 = data_exp()
 
     fig_exp_growth = dcc.Graph(
         figure=dict(
