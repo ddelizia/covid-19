@@ -238,7 +238,7 @@ def fig_overview(ca):
             data=[
                 {'type': 'bar', 'x': df.index, 'y': df['all'].diff().pct_change(), 'name': 'All cases delta %'},
             ],
-            layout=dict(title=f"All case delta [{ca}]", )
+            layout=dict(title=f"All case delta % [{ca}]", )
         ),
     )
 
@@ -255,10 +255,10 @@ def fig_overview(ca):
     fig_icus_cases_delta_pct = dcc.Graph(
         figure=dict(
             data=[
-                {'type': 'bar', 'x': df.index, 'y': df['uci'].diff().pct_change(), 'name': 'Icus delta pct',
+                {'type': 'bar', 'x': df.index, 'y': df['uci'].diff().pct_change(), 'name': 'Icus delta %',
                  'marker': {'color': 'crimson'}},
             ],
-            layout=dict(title=f"Icus case delta [{ca}]", )
+            layout=dict(title=f"Icus case delta % [{ca}]", )
         ),
     )
 
@@ -275,10 +275,10 @@ def fig_overview(ca):
     fig_recovered_cases_delta_pct = dcc.Graph(
         figure=dict(
             data=[
-                {'type': 'bar', 'x': df.index, 'y': df['recovered'].diff().pct_change(), 'name': 'Icus delta pct',
+                {'type': 'bar', 'x': df.index, 'y': df['recovered'].diff().pct_change(), 'name': 'Icus delta %',
                  'marker': {'color': 'forestgreen'}},
             ],
-            layout=dict(title=f"Recovered case delta [{ca}]", )
+            layout=dict(title=f"Recovered case delta % [{ca}]", )
         ),
     )
 
@@ -295,10 +295,10 @@ def fig_overview(ca):
     fig_deaths_cases_delta_pct = dcc.Graph(
         figure=dict(
             data=[
-                {'type': 'bar', 'x': df.index, 'y': df['deaths'].diff().pct_change(), 'name': 'Icus delta pct',
+                {'type': 'bar', 'x': df.index, 'y': df['deaths'].diff().pct_change(), 'name': 'Icus delta %',
                  'marker': {'color': 'black'}},
             ],
-            layout=dict(title=f"Deaths delta [{ca}]", )
+            layout=dict(title=f"Deaths delta % [{ca}]", )
         ),
     )
 
