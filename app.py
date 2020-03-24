@@ -87,23 +87,40 @@ def info_box():
 
 
 app.layout = html.Div(className='container', children=[
+    html.Header(children=[
+        html.H1(className='title', children='Covid-19 Spain Dashboard'),
 
-    html.H1(className='title', children='Covid-19 Spain Dashboard'),
+        html.P(className='subtitle', children='''
+            Data exploration for Spain Cases evolution.
+        ''')
+    ]),
+    html.Section(className='Content', children=[
+        info_box(),
+        dcc.Tabs([
+            dcc.Tab(label='Explore data', children=[
+                selector(),
+                html.Div(id='fig-overview'),
+                html.Div(id='table')
+            ]),
+            dcc.Tab(label='Comparision', children=[
+                comparator_selector(),
+                html.Div(id='fig-comparator')
+            ]),
+        ]),
+    ]),
 
-    html.P(className='subtitle', children='''
-        Data exploration for Spain Cases evolution. Data from: https://github.com/datadista/datasets/tree/master/COVID%2019
-    '''),
-    info_box(),
-    dcc.Tabs([
-        dcc.Tab(label='Explore data', children=[
-            selector(),
-            html.Div(id='fig-overview'),
-            html.Div(id='table')
-        ]),
-        dcc.Tab(label='Comparision', children=[
-            comparator_selector(),
-            html.Div(id='fig-comparator')
-        ]),
+    html.Footer(className='footer', children=[
+        html.Div(className='content has-text-centered', children=[
+            html.P(children=[
+                html.Strong(children='Covid-19 Spain Dashboard'),
+                ' by ',
+                html.A(href='https://github.com/ddelizia', children='Danilo Delizia'),
+                '. The source code is licensed ',
+                html.A(href='http://opensource.org/licenses/mit-license.php', children='MIT'),
+                '. Data from ',
+                html.A(href='https://github.com/datadista/datasets/tree/master/COVID%2019', children='datadista/datasets'),
+            ])
+        ])
     ])
 ])
 
