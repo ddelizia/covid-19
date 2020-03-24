@@ -9,6 +9,36 @@ from data import data_ccaa, get_ccaa, data_exp
 external_stylesheets = ['https://cdn.jsdelivr.net/npm/bulma@0.8.0/css/bulma.min.css']
 
 app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
+app.title = 'Covid-19 Spain Dashboard'
+
+app.index_string = """<!DOCTYPE html>
+<html>
+    <head>
+        <!-- Google Tag Manager -->
+        <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+        new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+        j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+        'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+        })(window,document,'script','dataLayer','GTM-5TZCMN3');</script>
+        <!-- End Google Tag Manager -->
+        {%metas%}
+        <title>{%title%}</title>
+        {%favicon%}
+        {%css%}
+    </head>
+    <body>
+        <!-- Google Tag Manager (noscript) -->
+        <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-5TZCMN3"
+        height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+        <!-- End Google Tag Manager (noscript) -->
+        {%app_entry%}
+        <footer>
+            {%config%}
+            {%scripts%}
+            {%renderer%}
+        </footer>
+    </body>
+</html>"""
 
 
 def selector():
@@ -28,13 +58,15 @@ def comparator_selector():
         multi=True,
     )
 
+
 def box(color, value, text):
     return html.Div(className=f'column is-3', children=[
-            html.Div(className=f'notification {color}', children=[
-                html.H1(className='title',  children=text),
-                html.P(className='subtitle', children=value)
-            ])
+        html.Div(className=f'notification {color}', children=[
+            html.H1(className='title', children=text),
+            html.P(className='subtitle', children=value)
         ])
+    ])
+
 
 def info_box():
     df = data_ccaa('Total')
@@ -54,20 +86,7 @@ def info_box():
     ])
 
 
-
-
 app.layout = html.Div(className='container', children=[
-    html.Script(children='''
-(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
-new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
-j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
-'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
-})(window,document,'script','dataLayer','GTM-5TZCMN3');
-    '''),
-
-    html.Noscript(children=[
-        html.Iframe(src='https://www.googletagmanager.com/ns.html?id=GTM-5TZCMN3', height="0", width="0", style="display:none;visibility:hidden")
-    ]),
 
     html.H1(className='title', children='Covid-19 Spain Dashboard'),
 
@@ -109,7 +128,8 @@ def table(ca):
 
 
 def _build_figure_grid(layout_grid):
-    return [html.Div(className='columns', children=[html.Div(className=f'column is-{12/len(row)}', children=[x]) for x in row])
+    return [html.Div(className='columns',
+                     children=[html.Div(className=f'column is-12-mobile is-{12 / len(row)}', children=[x]) for x in row])
             for row in layout_grid]
 
 
@@ -174,9 +194,11 @@ def fig_overview(ca):
     fig_resume = dcc.Graph(
         figure=dict(
             data=[
-                {'type': 'bar', 'x': df.index, 'y': df['remaining'], 'name': 'Active cases', 'marker': {'color': 'darkorange'}},
+                {'type': 'bar', 'x': df.index, 'y': df['remaining'], 'name': 'Active cases',
+                 'marker': {'color': 'darkorange'}},
                 {'type': 'bar', 'x': df.index, 'y': df['uci'], 'name': 'Cases in ICU', 'marker': {'color': 'crimson'}},
-                {'type': 'bar', 'x': df.index, 'y': df['recovered'], 'name': 'Recovered', 'marker': {'color': 'forestgreen'}},
+                {'type': 'bar', 'x': df.index, 'y': df['recovered'], 'name': 'Recovered',
+                 'marker': {'color': 'forestgreen'}},
                 {'type': 'bar', 'x': df.index, 'y': df['deaths'], 'name': 'Deaths', 'marker': {'color': 'black'}},
             ],
             layout=dict(
@@ -190,7 +212,7 @@ def fig_overview(ca):
             data=[
                 {'type': 'bar', 'x': df.index, 'y': df['all'].diff(), 'name': 'All cases delta'},
             ],
-            layout=dict(title=f"All case delta [{ca}]",)
+            layout=dict(title=f"All case delta [{ca}]", )
         ),
     )
 
@@ -199,61 +221,67 @@ def fig_overview(ca):
             data=[
                 {'type': 'bar', 'x': df.index, 'y': df['all'].diff().pct_change(), 'name': 'All cases delta %'},
             ],
-            layout=dict(title=f"All case delta [{ca}]",)
+            layout=dict(title=f"All case delta [{ca}]", )
         ),
     )
 
     fig_icus_cases_delta = dcc.Graph(
         figure=dict(
             data=[
-                {'type': 'bar', 'x': df.index, 'y': df['uci'].diff(), 'name': 'Icus delta', 'marker': {'color': 'crimson'}},
+                {'type': 'bar', 'x': df.index, 'y': df['uci'].diff(), 'name': 'Icus delta',
+                 'marker': {'color': 'crimson'}},
             ],
-            layout=dict(title=f"Icus case delta [{ca}]",)
+            layout=dict(title=f"Icus case delta [{ca}]", )
         ),
     )
 
     fig_icus_cases_delta_pct = dcc.Graph(
         figure=dict(
             data=[
-                {'type': 'bar', 'x': df.index, 'y': df['uci'].diff().pct_change(), 'name': 'Icus delta %', 'marker': {'color': 'crimson'}},
+                {'type': 'bar', 'x': df.index, 'y': df['uci'].diff().pct_change(), 'name': 'Icus delta %',
+                 'marker': {'color': 'crimson'}},
             ],
-            layout=dict(title=f"Icus case delta [{ca}]",)
+            layout=dict(title=f"Icus case delta [{ca}]", )
         ),
     )
 
     fig_recovered_cases_delta = dcc.Graph(
         figure=dict(
             data=[
-                {'type': 'bar', 'x': df.index, 'y': df['recovered'].diff(), 'name': 'Icus delta', 'marker': {'color': 'forestgreen'}},
+                {'type': 'bar', 'x': df.index, 'y': df['recovered'].diff(), 'name': 'Icus delta',
+                 'marker': {'color': 'forestgreen'}},
             ],
-            layout=dict(title=f"Recovered case delta [{ca}]",)
+            layout=dict(title=f"Recovered case delta [{ca}]", )
         ),
     )
 
     fig_recovered_cases_delta_pct = dcc.Graph(
         figure=dict(
             data=[
-                {'type': 'bar', 'x': df.index, 'y': df['recovered'].diff().pct_change(), 'name': 'Icus delta %', 'marker': {'color': 'forestgreen'}},
+                {'type': 'bar', 'x': df.index, 'y': df['recovered'].diff().pct_change(), 'name': 'Icus delta %',
+                 'marker': {'color': 'forestgreen'}},
             ],
-            layout=dict(title=f"Recovered case delta [{ca}]",)
+            layout=dict(title=f"Recovered case delta [{ca}]", )
         ),
     )
 
     fig_deaths_cases_delta = dcc.Graph(
         figure=dict(
             data=[
-                {'type': 'bar', 'x': df.index, 'y': df['deaths'].diff(), 'name': 'Icus delta', 'marker': {'color': 'black'}},
+                {'type': 'bar', 'x': df.index, 'y': df['deaths'].diff(), 'name': 'Icus delta',
+                 'marker': {'color': 'black'}},
             ],
-            layout=dict(title=f"Deaths delta [{ca}]",)
+            layout=dict(title=f"Deaths delta [{ca}]", )
         ),
     )
 
     fig_deaths_cases_delta_pct = dcc.Graph(
         figure=dict(
             data=[
-                {'type': 'bar', 'x': df.index, 'y': df['deaths'].diff().pct_change(), 'name': 'Icus delta %', 'marker': {'color': 'black'}},
+                {'type': 'bar', 'x': df.index, 'y': df['deaths'].diff().pct_change(), 'name': 'Icus delta %',
+                 'marker': {'color': 'black'}},
             ],
-            layout=dict(title=f"Deaths delta [{ca}]",)
+            layout=dict(title=f"Deaths delta [{ca}]", )
         ),
     )
 
@@ -263,10 +291,14 @@ def fig_overview(ca):
         figure=dict(
             data=[
                 {'x': df.index, 'y': df['all'], 'name': 'All cases'},
-                {'x': df.index, 'y': exp1, 'name': 'Doubling cases every day', 'marker': {'dash': 'dash', 'line': { 'width': 1, 'dash': 'dash'}}},
-                {'x': df.index, 'y': exp2, 'name': 'Doubling cases every 2 days', 'marker': {'line': {'width': 1, 'dash': 'dash'}}},
-                {'x': df.index, 'y': exp3, 'name': 'Doubling cases every 3 days', 'marker': {'line': {'width': 1, 'dash': 'dash'}}},
-                {'x': df.index, 'y': exp4, 'name': 'Doubling cases every 4 days', 'marker': {'line': {'width': 1, 'dash': 'dash'}}},
+                {'x': df.index, 'y': exp1, 'name': 'Doubling cases every day',
+                 'marker': {'dash': 'dash', 'line': {'width': 1, 'dash': 'dash'}}},
+                {'x': df.index, 'y': exp2, 'name': 'Doubling cases every 2 days',
+                 'marker': {'line': {'width': 1, 'dash': 'dash'}}},
+                {'x': df.index, 'y': exp3, 'name': 'Doubling cases every 3 days',
+                 'marker': {'line': {'width': 1, 'dash': 'dash'}}},
+                {'x': df.index, 'y': exp4, 'name': 'Doubling cases every 4 days',
+                 'marker': {'line': {'width': 1, 'dash': 'dash'}}},
             ],
             layout=dict(
                 title=f"Exponential growth [{ca}]",
@@ -275,18 +307,16 @@ def fig_overview(ca):
         ),
     )
 
-
     layout_grid = [
         [fig_all_cases, fig_resume],
         [fig_all_cases_delta, fig_all_cases_delta_pct],
         [fig_icus_cases_delta, fig_icus_cases_delta_pct],
         [fig_recovered_cases_delta, fig_recovered_cases_delta_pct],
         [fig_deaths_cases_delta, fig_deaths_cases_delta_pct],
-        [fig_exp_growth,]
+        [fig_exp_growth, ]
     ]
 
     return _build_figure_grid(layout_grid)
-
 
 
 server = app.server
