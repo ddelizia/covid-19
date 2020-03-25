@@ -202,7 +202,7 @@ def fig_overview(ca):
         figure=dict(
             data=[
                 {'x': df.index, 'y': df['all'], 'name': 'All cases'},
-                #{'x': df.index, 'y': exp_fit(df['all']), 'name': 'Exponential model'},
+                {'x': df.index, 'y': exp_fit(df['all'], ca), 'name': 'Exponential model'},
             ],
             layout=dict(
                 title=f"All cases [{ca}]",

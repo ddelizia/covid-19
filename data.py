@@ -3,7 +3,7 @@ import numpy as np
 from expiringdict import ExpiringDict
 from scipy.optimize import curve_fit
 
-cache = ExpiringDict(max_len=100, max_age_seconds=86400/24)
+cache = ExpiringDict(max_len=100, max_age_seconds=120)
 
 
 def _normalize_data(dataset_url):
@@ -46,8 +46,7 @@ def lin_space():
 
 
 def data_exp():
-    df_cases, df_uci, df_deaths, df_recovered = all_data()
-    x = np.linspace(0, df_cases.shape[0] - 1, df_cases.shape[0])
+    x = lin_space()
     return np.power(2, x), np.power(2, x/2), np.power(2, x/3), np.power(2, x/4)
 
 
@@ -55,8 +54,10 @@ def exponenial_func(x, a, b):
     return a*np.exp(-b*x)
 
 
-def exp_fit(y):
-    x = lin_space()
-    popt, pcov = curve_fit(exponenial_func, x, y, p0=(1, 1e-6))
+def exp_fit(y, ca):
+    if cache.get(f'exp{ca}') is None:
+        x = lin_space()
+        popt, pcov = curve_fit(exponenial_func, x[:-5], y[:-5], p0=(1, 1e-6))
+        cache[f'exp{ca}'] = exponenial_func(x, *popt)
 
-    return exponenial_func(x, *popt)
+    return cache[f'exp{ca}']
