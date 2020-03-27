@@ -196,10 +196,11 @@ def fig_overview(ca):
         figure=dict(
             data=[
                 {'x': df.index, 'y': df['all'], 'name': 'All cases'},
-                {'x': df.index, 'y': exp_fit(df['all'], ca), 'name': 'Exponential model'},
+                {'x': df.index, 'y': exp_fit(df['all'], ca), 'name': 'Exponential model',
+                 'line': {'dash': 'dash', 'width': 1}},
             ],
             layout=dict(
-                title=f"All cases [{ca}]",
+                title=f"All cases with exponential model calculated 5days ago [{ca}] ",
                 yaxis=dict(title=Y_NCASES),
                 xaxis=dict(title=X_DATE),
             )
