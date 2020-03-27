@@ -8,8 +8,8 @@ from components import build_figure_grid, selector, comparator_selector, box
 from data import data_ccaa, data_exp, exp_fit
 
 Y_NCASES = 'Number of cases'
-Y_NCASESDELTA = 'Daily sum of cases'
-Y_NCASESDELTAPRC = '% increase of cases compared to previous day'
+Y_NCASESDELTA = 'Daily cases'
+Y_NCASESDELTAPRC = '% change'
 X_DATE = 'Date'
 
 external_stylesheets = ['https://cdn.jsdelivr.net/npm/bulma@0.8.0/css/bulma.min.css']
@@ -243,7 +243,7 @@ def fig_overview(ca):
     fig_all_cases_delta_pct = dcc.Graph(
         figure=dict(
             data=[
-                {'type': 'bar', 'x': df.index, 'y': 100*df['all'].diff().pct_change(), 'name': 'All cases delta %'},
+                {'type': 'bar', 'x': df.index, 'y': 100*df['all'].pct_change(), 'name': 'All cases delta %'},
             ],
             layout=dict(
                 title=f"All case delta % [{ca}]",
@@ -270,7 +270,7 @@ def fig_overview(ca):
     fig_icus_cases_delta_pct = dcc.Graph(
         figure=dict(
             data=[
-                {'type': 'bar', 'x': df.index, 'y': 100*df['uci'].diff().pct_change(), 'name': 'Icus delta %',
+                {'type': 'bar', 'x': df.index, 'y': 100*df['uci'].pct_change(), 'name': 'Icus delta %',
                  'marker': {'color': 'crimson'}},
             ],
             layout=dict(
@@ -298,7 +298,7 @@ def fig_overview(ca):
     fig_recovered_cases_delta_pct = dcc.Graph(
         figure=dict(
             data=[
-                {'type': 'bar', 'x': df.index, 'y': 100*df['recovered'].diff().pct_change(), 'name': 'Icus delta %',
+                {'type': 'bar', 'x': df.index, 'y': 100*df['recovered'].pct_change(), 'name': 'Icus delta %',
                  'marker': {'color': 'forestgreen'}},
             ],
             layout=dict(
@@ -326,7 +326,7 @@ def fig_overview(ca):
     fig_deaths_cases_delta_pct = dcc.Graph(
         figure=dict(
             data=[
-                {'type': 'bar', 'x': df.index, 'y': 100*df['deaths'].diff().pct_change(), 'name': 'Icus delta %',
+                {'type': 'bar', 'x': df.index, 'y': 100*df['deaths'].pct_change(), 'name': 'Icus delta %',
                  'marker': {'color': 'black'}},
             ],
             layout=dict(
