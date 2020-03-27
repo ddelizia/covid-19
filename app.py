@@ -4,7 +4,13 @@ import dash_html_components as html
 import dash_table
 from dash.dependencies import Output, Input
 
-from data import data_ccaa, get_ccaa, data_exp, exp_fit
+from components import build_figure_grid, selector, comparator_selector, box
+from data import data_ccaa, data_exp, exp_fit
+
+Y_NCASES = 'Number of cases'
+Y_NCASESDELTA = 'Daily sum of cases'
+Y_NCASESDELTAPRC = '% increase of cases compared to previous day'
+X_DATE = 'Date'
 
 external_stylesheets = ['https://cdn.jsdelivr.net/npm/bulma@0.8.0/css/bulma.min.css']
 
@@ -40,52 +46,6 @@ app.index_string = """<!DOCTYPE html>
     </body>
 </html>"""
 
-
-def selector():
-    ccaa = get_ccaa()
-    return dcc.Dropdown(
-        id='selector',
-        options=[{'label': x, 'value': x} for x in ccaa],
-        value='Total'
-    )
-
-
-def comparator_selector():
-    ccaa = get_ccaa()
-    return dcc.Dropdown(
-        id='comporator-selector',
-        options=[{'label': x, 'value': x} for x in filter(lambda i: i != 'Total', ccaa)],
-        multi=True,
-    )
-
-
-def box(color, value, text):
-    return html.Div(className=f'column is-3', children=[
-        html.Div(className=f'notification {color}', children=[
-            html.H1(className='title', children=text),
-            html.P(className='subtitle', children=value)
-        ])
-    ])
-
-
-def info_box():
-    df = data_ccaa('Total')
-
-    all = df["all"][-1]
-    remaining = df["remaining"][-1]
-    deaths = df["deaths"][-1]
-    uci = df["uci"][-1]
-    recovered = df["recovered"][-1]
-
-    return html.Div(className='columns', children=[
-        box('is-info', 'All cases', all),
-        box('is-warning', 'ICU', uci),
-        box('is-success', 'Recovered', recovered),
-        box('is-danger', 'Deaths', deaths),
-
-    ])
-
-
 app.layout = html.Div(className='container', children=[
     html.Header(children=[
         html.H1(className='title', children='Covid-19 Spain Dashboard'),
@@ -95,7 +55,7 @@ app.layout = html.Div(className='container', children=[
         ''')
     ]),
     html.Section(className='Content', children=[
-        info_box(),
+        html.Div(id='box', className='columns'),
         dcc.Tabs([
             dcc.Tab(label='Explore data', children=[
                 selector(),
@@ -126,6 +86,27 @@ app.layout = html.Div(className='container', children=[
 
 
 @app.callback(
+    Output(component_id='box', component_property='children'),
+    [Input(component_id='selector', component_property='value')]
+)
+def info_box(ca):
+    df = data_ccaa('Total')
+
+    all = df["all"][-1]
+    remaining = df["remaining"][-1]
+    deaths = df["deaths"][-1]
+    uci = df["uci"][-1]
+    recovered = df["recovered"][-1]
+
+    return [
+        box('is-info', 'All cases', all),
+        box('is-warning', 'ICU', uci),
+        box('is-success', 'Recovered', recovered),
+        box('is-danger', 'Deaths', deaths),
+    ]
+
+
+@app.callback(
     Output(component_id='table', component_property='children'),
     [Input(component_id='selector', component_property='value')]
 )
@@ -144,12 +125,6 @@ def table(ca):
     )
 
 
-def _build_figure_grid(layout_grid):
-    return [html.Div(className='columns',
-                     children=[html.Div(className=f'column is-12-mobile is-{12 / len(row)}', children=[x]) for x in row])
-            for row in layout_grid]
-
-
 @app.callback(
     Output(component_id='fig-comparator', component_property='children'),
     [Input(component_id='comporator-selector', component_property='value')]
@@ -162,7 +137,9 @@ def fig_comparator(ca):
         figure=dict(
             data=[{'x': df.index, 'y': data_ccaa(x)['all'], 'name': x} for x in ca],
             layout=dict(
-                title=f"All cases [{', '.join(ca)}]"
+                title=f"All cases [{', '.join(ca)}]",
+                yaxis=dict(title=Y_NCASES),
+                xaxis=dict(title=X_DATE),
             )
         ),
     )
@@ -171,7 +148,9 @@ def fig_comparator(ca):
         figure=dict(
             data=[{'x': df.index, 'y': data_ccaa(x)['recovered'], 'name': x} for x in ca],
             layout=dict(
-                title=f"Recovered [{', '.join(ca)}]"
+                title=f"Recovered [{', '.join(ca)}]",
+                yaxis=dict(title=Y_NCASES),
+                xaxis=dict(title=X_DATE),
             )
         ),
     )
@@ -180,15 +159,30 @@ def fig_comparator(ca):
         figure=dict(
             data=[{'x': df.index, 'y': data_ccaa(x)['deaths'], 'name': x} for x in ca],
             layout=dict(
-                title=f"Deaths [{', '.join(ca)}]"
+                title=f"Deaths [{', '.join(ca)}]",
+                yaxis=dict(title=Y_NCASES),
+                xaxis=dict(title=X_DATE),
             )
         ),
     )
+
+    daily_pct_increase = dcc.Graph(
+        figure=dict(
+            data=[{'type': 'bar', 'x': df.index, 'y': 100*data_ccaa(x)['all'].pct_change(), 'name': ca} for x in ca],
+            layout=dict(
+                title=f"Daily % infection change [{', '.join(ca)}]",
+                yaxis=dict(title='% change'),
+                xaxis=dict(title=X_DATE),
+            ),
+        ),
+    )
+
     layout_grid = [
         [all_cases],
-        [recovered, deaths]
+        [recovered, deaths],
+        [daily_pct_increase]
     ]
-    return _build_figure_grid(layout_grid)
+    return build_figure_grid(layout_grid)
 
 
 @app.callback(
@@ -206,6 +200,8 @@ def fig_overview(ca):
             ],
             layout=dict(
                 title=f"All cases [{ca}]",
+                yaxis=dict(title=Y_NCASES),
+                xaxis=dict(title=X_DATE),
             )
         ),
     )
@@ -221,7 +217,10 @@ def fig_overview(ca):
                 {'type': 'bar', 'x': df.index, 'y': df['deaths'], 'name': 'Deaths', 'marker': {'color': 'black'}},
             ],
             layout=dict(
-                title=f"Comparision [{ca}]",
+                title=f"Daily cases distribution [{ca}]",
+                barmode='stack',
+                yaxis=dict(title=Y_NCASES),
+                xaxis=dict(title=X_DATE),
             )
         ),
     )
@@ -231,16 +230,25 @@ def fig_overview(ca):
             data=[
                 {'type': 'bar', 'x': df.index, 'y': df['all'].diff(), 'name': 'All cases delta'},
             ],
-            layout=dict(title=f"All case delta [{ca}]", )
+            layout=dict(
+                title=f"All case delta [{ca}]",
+                yaxis=dict(title=Y_NCASESDELTA),
+                xaxis=dict(title=X_DATE),
+            ),
+
         ),
     )
 
     fig_all_cases_delta_pct = dcc.Graph(
         figure=dict(
             data=[
-                {'type': 'bar', 'x': df.index, 'y': df['all'].diff().pct_change(), 'name': 'All cases delta %'},
+                {'type': 'bar', 'x': df.index, 'y': 100*df['all'].diff().pct_change(), 'name': 'All cases delta %'},
             ],
-            layout=dict(title=f"All case delta % [{ca}]", )
+            layout=dict(
+                title=f"All case delta % [{ca}]",
+                yaxis=dict(title=Y_NCASESDELTAPRC),
+                xaxis=dict(title=X_DATE),
+            ),
         ),
     )
 
@@ -250,17 +258,25 @@ def fig_overview(ca):
                 {'type': 'bar', 'x': df.index, 'y': df['uci'].diff(), 'name': 'Icus delta',
                  'marker': {'color': 'crimson'}},
             ],
-            layout=dict(title=f"Icus case delta [{ca}]", )
+            layout=dict(
+                title=f"Icus case delta [{ca}]",
+                yaxis=dict(title=Y_NCASESDELTA),
+                xaxis=dict(title=X_DATE),
+            ),
         ),
     )
 
     fig_icus_cases_delta_pct = dcc.Graph(
         figure=dict(
             data=[
-                {'type': 'bar', 'x': df.index, 'y': df['uci'].diff().pct_change(), 'name': 'Icus delta %',
+                {'type': 'bar', 'x': df.index, 'y': 100*df['uci'].diff().pct_change(), 'name': 'Icus delta %',
                  'marker': {'color': 'crimson'}},
             ],
-            layout=dict(title=f"Icus case delta % [{ca}]", )
+            layout=dict(
+                title=f"Icus case delta % [{ca}]",
+                yaxis=dict(title=Y_NCASESDELTAPRC),
+                xaxis=dict(title=X_DATE),
+            ),
         ),
     )
 
@@ -270,17 +286,25 @@ def fig_overview(ca):
                 {'type': 'bar', 'x': df.index, 'y': df['recovered'].diff(), 'name': 'Icus delta',
                  'marker': {'color': 'forestgreen'}},
             ],
-            layout=dict(title=f"Recovered case delta [{ca}]", )
+            layout=dict(
+                title=f"Recovered case delta [{ca}]",
+                yaxis=dict(title=Y_NCASESDELTA),
+                xaxis=dict(title=X_DATE),
+            ),
         ),
     )
 
     fig_recovered_cases_delta_pct = dcc.Graph(
         figure=dict(
             data=[
-                {'type': 'bar', 'x': df.index, 'y': df['recovered'].diff().pct_change(), 'name': 'Icus delta %',
+                {'type': 'bar', 'x': df.index, 'y': 100*df['recovered'].diff().pct_change(), 'name': 'Icus delta %',
                  'marker': {'color': 'forestgreen'}},
             ],
-            layout=dict(title=f"Recovered case delta % [{ca}]", )
+            layout=dict(
+                title=f"Recovered case delta % [{ca}]",
+                yaxis=dict(title=Y_NCASESDELTAPRC),
+                xaxis=dict(title=X_DATE),
+            ),
         ),
     )
 
@@ -290,17 +314,25 @@ def fig_overview(ca):
                 {'type': 'bar', 'x': df.index, 'y': df['deaths'].diff(), 'name': 'Icus delta',
                  'marker': {'color': 'black'}},
             ],
-            layout=dict(title=f"Deaths delta [{ca}]", )
+            layout=dict(
+                title=f"Deaths delta [{ca}]",
+                yaxis=dict(title=Y_NCASESDELTA),
+                xaxis=dict(title=X_DATE),
+            ),
         ),
     )
 
     fig_deaths_cases_delta_pct = dcc.Graph(
         figure=dict(
             data=[
-                {'type': 'bar', 'x': df.index, 'y': df['deaths'].diff().pct_change(), 'name': 'Icus delta %',
+                {'type': 'bar', 'x': df.index, 'y': 100*df['deaths'].diff().pct_change(), 'name': 'Icus delta %',
                  'marker': {'color': 'black'}},
             ],
-            layout=dict(title=f"Deaths delta % [{ca}]", )
+            layout=dict(
+                title=f"Deaths delta % [{ca}]",
+                yaxis=dict(title=Y_NCASESDELTAPRC),
+                xaxis=dict(title=X_DATE),
+            ),
         ),
     )
 
@@ -309,17 +341,19 @@ def fig_overview(ca):
             data=[
                 {'x': df.index, 'y': df['all'], 'name': 'All cases'},
                 {'x': df.index, 'y': exp1, 'name': 'Doubling cases every day',
-                 'marker': {'dash': 'dash', 'line': {'width': 1, 'dash': 'dash'}}},
+                 'line': {'dash': 'dash', 'width': 1}},
                 {'x': df.index, 'y': exp2, 'name': 'Doubling cases every 2 days',
-                 'marker': {'line': {'width': 1, 'dash': 'dash'}}},
+                 'line': {'dash': 'dash', 'width': 1}},
                 {'x': df.index, 'y': exp3, 'name': 'Doubling cases every 3 days',
-                 'marker': {'line': {'width': 1, 'dash': 'dash'}}},
+                 'line': {'dash': 'dash', 'width': 1}},
                 {'x': df.index, 'y': exp4, 'name': 'Doubling cases every 4 days',
-                 'marker': {'line': {'width': 1, 'dash': 'dash'}}},
+                 'line': {'dash': 'dash', 'width': 1}},
             ],
             layout=dict(
-                title=f"Exponential growth [{ca}]",
-                yaxis={'type': 'log', 'autorange': True}
+                title=f"Exponential growth overview (log scale) [{ca}]",
+                yaxis={'type': 'log', 'autorange': True, 'title': Y_NCASES},
+                xaxis=dict(title=X_DATE),
+                height=1000
             )
         ),
     )
@@ -333,7 +367,7 @@ def fig_overview(ca):
         [fig_exp_growth, ]
     ]
 
-    return _build_figure_grid(layout_grid)
+    return build_figure_grid(layout_grid)
 
 
 server = app.server
