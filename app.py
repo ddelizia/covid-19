@@ -5,7 +5,9 @@ import dash_table
 from dash.dependencies import Output, Input
 
 from components import build_figure_grid, selector, comparator_selector, box
-from data import data_ccaa, data_exp, exp_fit
+from data import getData
+
+data = getData()
 
 Y_NCASES = 'Number of cases'
 Y_NCASESDELTA = 'Daily cases'
@@ -15,7 +17,7 @@ X_DATE = 'Date'
 external_stylesheets = ['https://cdn.jsdelivr.net/npm/bulma@0.8.0/css/bulma.min.css']
 
 app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
-app.title = 'Covid-19 Spain Dashboard'
+app.title = data.dash_title()
 
 app.index_string = """<!DOCTYPE html>
 <html>
@@ -48,10 +50,10 @@ app.index_string = """<!DOCTYPE html>
 
 app.layout = html.Div(className='container', children=[
     html.Header(children=[
-        html.H1(className='title', children='Covid-19 Spain Dashboard'),
+        html.H1(className='title', children=data.dash_title()),
 
         html.P(className='subtitle', children='''
-            Data exploration for Spain Cases evolution.
+            Data exploration for covid-19.
         ''')
     ]),
     html.Section(className='Content', children=[
@@ -71,15 +73,7 @@ app.layout = html.Div(className='container', children=[
 
     html.Footer(className='footer', children=[
         html.Div(className='content has-text-centered', children=[
-            html.P(children=[
-                html.Strong(children='Covid-19 Spain Dashboard'),
-                ' by ',
-                html.A(href='https://github.com/ddelizia', children='Danilo Delizia'),
-                '. The source code is licensed under ',
-                html.A(href='http://opensource.org/licenses/mit-license.php', children='MIT'),
-                '. Data from ',
-                html.A(href='https://github.com/datadista/datasets/tree/master/COVID%2019', children='datadista/datasets'),
-            ])
+            data.dash_data_ref()
         ])
     ])
 ])
@@ -90,7 +84,7 @@ app.layout = html.Div(className='container', children=[
     [Input(component_id='selector', component_property='value')]
 )
 def info_box(ca):
-    df = data_ccaa('Total')
+    df = data.data_ccaa('Total')
 
     all = df["all"][-1]
     remaining = df["remaining"][-1]
@@ -111,7 +105,7 @@ def info_box(ca):
     [Input(component_id='selector', component_property='value')]
 )
 def table(ca):
-    df = data_ccaa(ca)
+    df = data.data_ccaa(ca)
     return dash_table.DataTable(
         id='table-data',
         columns=[
@@ -132,10 +126,10 @@ def table(ca):
 def fig_comparator(ca):
     if ca is None:
         return None
-    df = data_ccaa('Total')
+    df = data.data_ccaa('Total')
     all_cases = dcc.Graph(
         figure=dict(
-            data=[{'x': df.index, 'y': data_ccaa(x)['all'], 'name': x} for x in ca],
+            data=[{'x': df.index, 'y': data.data_ccaa(x)['all'], 'name': x} for x in ca],
             layout=dict(
                 title=f"All cases [{', '.join(ca)}]",
                 yaxis=dict(title=Y_NCASES),
@@ -146,7 +140,7 @@ def fig_comparator(ca):
 
     recovered = dcc.Graph(
         figure=dict(
-            data=[{'x': df.index, 'y': data_ccaa(x)['recovered'], 'name': x} for x in ca],
+            data=[{'x': df.index, 'y': data.data_ccaa(x)['recovered'], 'name': x} for x in ca],
             layout=dict(
                 title=f"Recovered [{', '.join(ca)}]",
                 yaxis=dict(title=Y_NCASES),
@@ -157,7 +151,7 @@ def fig_comparator(ca):
 
     deaths = dcc.Graph(
         figure=dict(
-            data=[{'x': df.index, 'y': data_ccaa(x)['deaths'], 'name': x} for x in ca],
+            data=[{'x': df.index, 'y': data.data_ccaa(x)['deaths'], 'name': x} for x in ca],
             layout=dict(
                 title=f"Deaths [{', '.join(ca)}]",
                 yaxis=dict(title=Y_NCASES),
@@ -168,7 +162,7 @@ def fig_comparator(ca):
 
     daily_pct_increase = dcc.Graph(
         figure=dict(
-            data=[{'type': 'bar', 'x': df.index, 'y': 100*data_ccaa(x)['all'].pct_change(), 'name': ca} for x in ca],
+            data=[{'type': 'bar', 'x': df.index, 'y': 100*data.data_ccaa(x)['all'].pct_change(), 'name': ca} for x in ca],
             layout=dict(
                 title=f"Daily % infection change [{', '.join(ca)}]",
                 yaxis=dict(title='% change'),
@@ -190,13 +184,13 @@ def fig_comparator(ca):
     [Input(component_id='selector', component_property='value')]
 )
 def fig_overview(ca):
-    df = data_ccaa(ca)
-    exp1, exp2, exp3, exp4 = data_exp()
+    df = data.data_ccaa(ca)
+    exp1, exp2, exp3, exp4 = data.data_exp()
     fig_all_cases = dcc.Graph(
         figure=dict(
             data=[
                 {'x': df.index, 'y': df['all'], 'name': 'All cases'},
-                {'x': df.index, 'y': exp_fit(df['all'], ca), 'name': 'Exponential model',
+                {'x': df.index, 'y': data.exp_fit(df['all'], ca), 'name': 'Exponential model',
                  'line': {'dash': 'dash', 'width': 1}},
             ],
             layout=dict(

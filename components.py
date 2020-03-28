@@ -1,7 +1,9 @@
 import dash_core_components as dcc
 import dash_html_components as html
 
-from data import get_ccaa
+from data import getData
+
+data = getData()
 
 
 def build_figure_grid(layout_grid):
@@ -11,7 +13,7 @@ def build_figure_grid(layout_grid):
 
 
 def selector():
-    ccaa = get_ccaa()
+    ccaa = data.get_ccaa()
     return dcc.Dropdown(
         id='selector',
         options=[{'label': x, 'value': x} for x in ccaa],
@@ -20,7 +22,7 @@ def selector():
 
 
 def comparator_selector():
-    ccaa = get_ccaa()
+    ccaa = data.get_ccaa()
     return dcc.Dropdown(
         id='comporator-selector',
         options=[{'label': x, 'value': x} for x in filter(lambda i: i != 'Total', ccaa)],
