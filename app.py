@@ -353,13 +353,28 @@ def fig_overview(ca):
         ),
     )
 
+    fig_diff_all = dcc.Graph(
+        figure=dict(
+            data=[
+                {'x': df['all'], 'y': df['all'].diff(), 'name': 'All cases'},
+            ],
+            layout=dict(
+                title=f"Trajectory of confirmed cases (log scale) [{ca}]",
+                yaxis={'type': 'log', 'autorange': True, 'title': 'New confirmed cases'},
+                xaxis={'type': 'log', 'autorange': True, 'title': 'Total confirmed cases'},
+                height=1000
+            )
+        ),
+    )
+
     layout_grid = [
         [fig_all_cases, fig_resume],
         [fig_all_cases_delta, fig_all_cases_delta_pct],
         [fig_icus_cases_delta, fig_icus_cases_delta_pct],
         [fig_recovered_cases_delta, fig_recovered_cases_delta_pct],
         [fig_deaths_cases_delta, fig_deaths_cases_delta_pct],
-        [fig_exp_growth, ]
+        [fig_exp_growth, ],
+        [fig_diff_all, ]
     ]
 
     return build_figure_grid(layout_grid)
