@@ -32,13 +32,15 @@ class Data:
     def data_ccaa(self, ca):
         if cache.get(f'data{ca}') is None:
             df_cases, df_uci, df_deaths, df_recovered = self.all_data()
-            data = pd.concat([df_cases[ca], df_deaths[ca], df_uci[ca], df_recovered[ca]], axis='columns').fillna(method='ffill').fillna(0)
+            data = pd.concat([df_cases[ca], df_deaths[ca], df_uci[ca], df_recovered[ca]], axis='columns').fillna(
+                method='ffill').fillna(0)
             data.columns = ["all", "deaths", "uci", "recovered"]
-            data['remaining'] = data["all"] - data["deaths"] - data["recovered"]
-            data['stacked_sum'] = data[['remaining', 'recovered', 'deaths']].sum(axis=1)
+            data['remaining'] = data["all"] - data["deaths"] - data["recovered"] - data["uci"]
+            data['stacked_sum'] = data[['remaining', 'recovered', 'deaths', 'uci']].sum(axis=1)
             data['remaining_pct'] = (data['remaining'] / data['stacked_sum']) * 100
             data['recovered_pct'] = (data['recovered'] / data['stacked_sum']) * 100
             data['deaths_pct'] = (data['deaths'] / data['stacked_sum']) * 100
+            data['uci_pct'] = (data['uci'] / data['stacked_sum']) * 100
             cache[f'data{ca}'] = data
         return cache[f'data{ca}']
 
@@ -49,10 +51,10 @@ class Data:
 
     def data_exp(self):
         x = self.lin_space()
-        return np.power(2, x), np.power(2, x/2), np.power(2, x/3), np.power(2, x/4)
+        return np.power(2, x), np.power(2, x / 2), np.power(2, x / 3), np.power(2, x / 4)
 
     def exponential_func(self, x, a, b):
-        return a*np.exp(-b*x)
+        return a * np.exp(-b * x)
 
     def exp_fit(self, y, ca):
         if cache.get(f'exp{ca}') is None:
@@ -72,10 +74,14 @@ class DataEs(Data):
         return df_ca.reindex(pd.date_range(df_ca.index[0], df_ca.index[-1]))
 
     def build_data(self):
-        df_cases = self._normalize_data('https://raw.githubusercontent.com/datadista/datasets/master/COVID%2019/ccaa_covid19_casos.csv')
-        df_uci = self._normalize_data('https://raw.githubusercontent.com/datadista/datasets/master/COVID%2019/ccaa_covid19_uci.csv')
-        df_deaths = self._normalize_data('https://raw.githubusercontent.com/datadista/datasets/master/COVID%2019/ccaa_covid19_fallecidos.csv')
-        df_recovered = self._normalize_data('https://raw.githubusercontent.com/datadista/datasets/master/COVID%2019/ccaa_covid19_altas.csv')
+        df_cases = self._normalize_data(
+            'https://raw.githubusercontent.com/datadista/datasets/master/COVID%2019/ccaa_covid19_casos.csv')
+        df_uci = self._normalize_data(
+            'https://raw.githubusercontent.com/datadista/datasets/master/COVID%2019/ccaa_covid19_uci.csv')
+        df_deaths = self._normalize_data(
+            'https://raw.githubusercontent.com/datadista/datasets/master/COVID%2019/ccaa_covid19_fallecidos.csv')
+        df_recovered = self._normalize_data(
+            'https://raw.githubusercontent.com/datadista/datasets/master/COVID%2019/ccaa_covid19_altas.csv')
 
         return df_cases, df_uci, df_deaths, df_recovered
 
@@ -90,14 +96,16 @@ class DataEs(Data):
             '. The source code is licensed under ',
             html.A(href='http://opensource.org/licenses/mit-license.php', children='MIT'),
             '. Data from ',
-            html.A(href='https://github.com/datadista/datasets/tree/master/COVID%2019', children='Github datadista/datasets'),
+            html.A(href='https://github.com/datadista/datasets/tree/master/COVID%2019',
+                   children='Github datadista/datasets'),
         ])
 
 
 class DataIt(Data):
 
     def build_data(self):
-        df = pd.read_csv('https://raw.githubusercontent.com/pcm-dpc/COVID-19/master/dati-regioni/dpc-covid19-ita-regioni.csv')
+        df = pd.read_csv(
+            'https://raw.githubusercontent.com/pcm-dpc/COVID-19/master/dati-regioni/dpc-covid19-ita-regioni.csv')
         df['data'] = pd.to_datetime(df['data'])
         df['date'] = df['data']
         df.set_index(['data', 'codice_regione'], inplace=True)
