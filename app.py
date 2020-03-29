@@ -380,14 +380,33 @@ def fig_overview(ca):
         ),
     )
 
+    fig_stacked = dcc.Graph(
+        figure=dict(
+            data=[
+                {'x': df.index, 'y': df['remaining_pct'], 'stackgroup': 'one', 'hoverinfo': 'x+y', 'name': 'Active cases',
+                 'line': {'color': 'darkorange'}},
+                {'x': df.index, 'y': df['recovered_pct'], 'stackgroup': 'one', 'hoverinfo': 'x+y', 'name': 'Recovered',
+                 'line': {'color': 'forestgreen'}},
+                {'x': df.index, 'y': df['deaths_pct'], 'stackgroup': 'one', 'hoverinfo': 'x+y', 'name': 'Deaths',
+                 'line': {'color': 'black'}},
+            ],
+            layout=dict(
+                title=f"% Distribution of the cases across phases [{ca}]",
+                yaxis={'range': [0, 100], 'title': 'Stacked percentage of cases'},
+                xaxis={'title': X_DATE},
+            )
+        ),
+    )
+
     layout_grid = [
         [fig_all_cases, fig_resume],
         [fig_all_cases_delta, fig_all_cases_delta_pct],
         [fig_icus_cases_delta, fig_icus_cases_delta_pct],
         [fig_recovered_cases_delta, fig_recovered_cases_delta_pct],
         [fig_deaths_cases_delta, fig_deaths_cases_delta_pct],
+        [fig_stacked, ],
         [fig_exp_growth, ],
-        [fig_diff_all, ]
+        [fig_diff_all, ],
     ]
 
     return build_figure_grid(layout_grid)

@@ -34,7 +34,11 @@ class Data:
             df_cases, df_uci, df_deaths, df_recovered = self.all_data()
             data = pd.concat([df_cases[ca], df_deaths[ca], df_uci[ca], df_recovered[ca]], axis='columns').fillna(method='ffill').fillna(0)
             data.columns = ["all", "deaths", "uci", "recovered"]
-            data['remaining'] = data["all"] - data["deaths"] - data["uci"] - data["recovered"]
+            data['remaining'] = data["all"] - data["deaths"] - data["recovered"]
+            data['stacked_sum'] = data[['remaining', 'recovered', 'deaths']].sum(axis=1)
+            data['remaining_pct'] = (data['remaining'] / data['stacked_sum']) * 100
+            data['recovered_pct'] = (data['recovered'] / data['stacked_sum']) * 100
+            data['deaths_pct'] = (data['deaths'] / data['stacked_sum']) * 100
             cache[f'data{ca}'] = data
         return cache[f'data{ca}']
 
