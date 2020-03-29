@@ -162,7 +162,7 @@ def fig_comparator(ca):
 
     daily_pct_increase = dcc.Graph(
         figure=dict(
-            data=[{'type': 'bar', 'x': df.index, 'y': 100*data.data_ccaa(x)['all'].pct_change(), 'name': ca} for x in ca],
+            data=[{'type': 'bar', 'x': df.index, 'y': 100*data.data_ccaa(x)['all'].pct_change(), 'name': x} for x in ca],
             layout=dict(
                 title=f"Daily % infection change [{', '.join(ca)}]",
                 yaxis=dict(title='% change'),
@@ -171,10 +171,23 @@ def fig_comparator(ca):
         ),
     )
 
+    fig_diff_all = dcc.Graph(
+        figure=dict(
+            data=[{'x': data.data_ccaa(x)['all'], 'y': data.data_ccaa(x)['all'].diff(), 'name': x} for x in ca],
+            layout=dict(
+                title=f"Trajectory of confirmed cases (log scale) [{', '.join(ca)}]",
+                yaxis={'type': 'log', 'autorange': True, 'title': 'New confirmed cases'},
+                xaxis={'type': 'log', 'autorange': True, 'title': 'Total confirmed cases'},
+                height=1000
+            )
+        ),
+    )
+
     layout_grid = [
         [all_cases],
         [recovered, deaths],
-        [daily_pct_increase]
+        [daily_pct_increase],
+        [fig_diff_all]
     ]
     return build_figure_grid(layout_grid)
 
