@@ -371,7 +371,7 @@ def fig_overview(ca):
     fig_diff_all = dcc.Graph(
         figure=dict(
             data=[
-                {'x': df['all'], 'y': df['all'].diff(), 'name': 'All cases'},
+                {'x': df['all'], 'y': df['all'].diff().rolling(window=3).mean(), 'name': 'All cases'},
             ],
             layout=dict(
                 title=f"Trajectory of confirmed cases (log scale) [{ca}]",
