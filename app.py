@@ -202,9 +202,10 @@ def fig_overview(ca):
     fig_all_cases = dcc.Graph(
         figure=dict(
             data=[
-                {'x': df.index, 'y': df['all'], 'name': 'All cases'},
+                {'x': df.index, 'y': df['all'], 'name': 'Confirmed cases'},
                 {'x': df.index, 'y': data.exp_fit(df['all'], ca), 'name': 'Exponential model',
                  'line': {'dash': 'dash', 'width': 1}},
+                {'x': df.index, 'y': df['remaining'] + df['uci'], 'name': 'Active cases'},
             ],
             layout=dict(
                 title=f"All cases with exponential model calculated 5days ago [{ca}] ",
