@@ -173,7 +173,7 @@ def fig_comparator(ca):
 
     fig_diff_all = dcc.Graph(
         figure=dict(
-            data=[{'x': data.data_ccaa(x)['all'], 'y': data.data_ccaa(x)['all'].diff(), 'name': x} for x in ca],
+            data=[{'x': data.data_ccaa(x)['all'], 'y': data.data_ccaa(x)['all'].diff().rolling(window=3).mean(), 'name': x} for x in ca],
             layout=dict(
                 title=f"Trajectory of confirmed cases (log scale) [{', '.join(ca)}]",
                 yaxis={'type': 'log', 'autorange': True, 'title': 'New confirmed cases'},
