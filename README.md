@@ -1,6 +1,6 @@
 # Covid-19 Spain Dashboard
 
-This repository is contains the sourcecode for the dashboard https://covid-19-es.herokuapp.com
+This repository is contains the sourcecode for the dashboard http://it-covid-19.herokuapp.com/
 
 If you want to contribute please submit a PR.
 
